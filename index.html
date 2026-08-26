@@ -87,6 +87,14 @@
   }
   .hero p strong{color:#fff;font-weight:700}
   .hero .lead{font-size:18px;color:#EAE4DF}
+  .hero .reassure{font-size:17px;color:#fff;font-weight:650;margin-bottom:20px}
+  .hero .anon{
+    margin-top:24px;padding:16px 18px;
+    background:rgba(255,255,255,.05);
+    border-left:2px solid var(--red);border-radius:0 8px 8px 0;
+    font-size:15.5px;
+  }
+  .hero .anon strong{display:inline-block;margin-bottom:3px}
   .hero .meta{
     margin-top:30px;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;
     font-size:13.5px;color:#9E948D;
@@ -217,7 +225,12 @@
 
   @media (max-width:640px){
     body{font-size:16px}
-    .hero{padding:48px 0 44px}
+    /* Tighter on phones: the intro copy runs long, so trim the vertical
+       padding to bring the start button as close to the fold as possible. */
+    .hero{padding:40px 0}
+    .hero p{margin-bottom:12px}
+    .hero .meta{margin-top:22px;gap:18px}
+    .hero .btn{margin-top:24px}
     .opts.c5,.opts.c4{grid-template-columns:1fr}
     .opts.c3{grid-template-columns:1fr}
     .opt{justify-content:flex-start;text-align:left;padding:13px 16px;min-height:48px}
@@ -247,8 +260,12 @@
 
     <p class="kicker">Ministry Data Health Check</p>
     <h1>Data Fluency Assessment</h1>
-    <p class="lead">A short check-up on how well your ministry uses data to make decisions, and whether what you measure matches what you value.</p>
-    <p><strong>Your answers are anonymous.</strong> We never ask for your name or email. Responses are grouped by campus and team so leaders can see patterns, not individuals.</p>
+    <p class="lead">Let’s learn how data is helping your team — and where it could be easier.</p>
+    <p class="reassure">You don’t need to be a “data person” to take this survey.</p>
+    <p>This is simply a chance to tell us about your everyday experience with information at your church — what’s easy to find, what helps you make decisions, what feels confusing, and what could work better.</p>
+    <p>There are no right or wrong answers, and you don’t need to know anything about dashboards, databases, or analytics. Just answer based on what you experience in your role.</p>
+    <p>Your responses will help your church understand what’s working well and where better information, tools, or support could make ministry easier.</p>
+    <p class="anon"><strong>Your responses are anonymous.</strong><br>We won’t ask for your name or email. Responses are combined with others so we can see patterns across teams, not individual answers.</p>
     <div class="meta">
       <span><b>44</b> questions</span>
       <span><b>7</b> short sections</span>
