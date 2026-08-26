@@ -62,17 +62,16 @@
     justify-content:center;
   }
   .logo{width:88px;height:88px;margin:0 auto 26px;display:block}
+  /* Back to the original small red eyebrow treatment, kept as the h1 so the
+     page still has one real heading for screen readers. */
   .hero h1{
-    /* Sized to keep "Data Fluency Assessment" on one line. The 7.2vw slope is
-       set below the measured limit so it still fits when a device renders the
-       system font wider than Segoe UI; if one ever does, it wraps to two
-       balanced lines instead of overflowing. */
-    font-size:clamp(20px,6.9vw,52px);
-    line-height:1.06;
-    letter-spacing:-.03em;
-    font-weight:800;
-    margin:0 0 10px;
-    text-wrap:balance;
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--red);
+    line-height:1.4;
+    margin:0 0 16px;
   }
   .hero .kicker{
     font-size:12.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
