@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
 <title>Data Fluency Assessment</title>
 <style>
   :root{
@@ -178,6 +180,9 @@
   .err.show{display:block}
 
   /* ---------- Done ---------- */
+  /* honeypot — must stay reachable in the DOM but invisible to people */
+  .hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
   .done{text-align:center;padding:70px 0 40px;display:none}
   .done.show{display:block}
   .done .mark{
@@ -192,6 +197,8 @@
     border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;
     color:#9C938C;font-size:13px;
   }
+  footer strong{color:#6E655F;font-weight:700}
+  footer .tm{font-size:.62em;vertical-align:super;line-height:0;margin-left:1px;font-weight:600}
 
   @media (max-width:640px){
     body{font-size:16px}
@@ -236,11 +243,19 @@
     <button class="btn" id="startBtn">Let's get started
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+
   </div>
 </section>
 
 <!-- ============ FORM ============ -->
 <main class="wrap" id="main" style="display:none">
+  <!-- Honeypot: invisible to people, irresistible to bots. If it gets filled, we drop the response. -->
+  <div class="hp" aria-hidden="true">
+    <label>Website
+      <input type="text" id="hp_website" name="website" tabindex="-1" autocomplete="off">
+    </label>
+  </div>
+
   <div id="steps"></div>
 
   <div class="done" id="done">
@@ -250,10 +265,12 @@
     <h2>Thank you!</h2>
     <p>Your responses have been recorded. Your answers will be combined with the rest of your team's to build a picture of where your ministry's data fluency is strong and where it needs support.</p>
     <p>We're grateful for the chance to serve you and your team.</p>
+    <p style="margin-top:26px;font-size:15px">Sharing this computer with someone else?</p>
+    <button class="btn ghost" id="againBtn" style="margin-top:10px">Start a fresh response</button>
   </div>
 </main>
 
-<footer class="wrap">Data Fluency Assessment</footer>
+<footer class="wrap"><strong>Smart Metrix<sup class="tm">&trade;</sup></strong> Data Fluency Assessment</footer>
 
 <iframe name="sink" id="sink" style="display:none" title="submit target"></iframe>
 
@@ -262,7 +279,9 @@
    CONFIG
    ======================================================================= */
 const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSd6UP2rMW3uxsbDJhzTxfIQoIWC0gyLXiDHIVj3lGO3OlI08A/formResponse";
-const STORAGE_KEY = "dfa-progress-v1";
+const STORAGE_KEY   = "dfa-progress-v1";
+const MIN_SECONDS   = 30;   // 44 questions faster than this is not a human
+let startedAt = 0;
 
 const YN    = ["Yes","No"];
 const SKILL = ["No Skill","Low Skill","Average Skill","Strong Skill","Exceptional Skill"];
@@ -529,6 +548,15 @@ function submit(){
   const btn = document.querySelector(`.step[data-step="${SECTIONS.length-1}"] [data-next]`);
   btn.disabled = true; btn.textContent = "Sending…";
 
+  // --- spam checks -------------------------------------------------------
+  // A real person never sees the honeypot, so a filled one means a bot.
+  // A real person also cannot answer 44 questions in half a minute.
+  // In both cases we show the normal thank-you but send nothing, so a bot
+  // has no signal that it failed and nothing lands in the sheet.
+  const trapped = document.getElementById("hp_website").value.trim() !== "";
+  const tooFast = startedAt > 0 && (Date.now() - startedAt) / 1000 < MIN_SECONDS;
+  if (trapped || tooFast){ finish(); return; }
+
   const f = document.createElement("form");
   f.action = FORM_ACTION; f.method = "POST"; f.target = "sink"; f.style.display = "none";
   Object.entries(answers).forEach(([id, val]) => {
@@ -540,9 +568,14 @@ function submit(){
   });
   document.body.appendChild(f);
   f.submit();
+  finish();
+}
 
+function finish(){
   setTimeout(() => {
-    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+    }catch(e){}
     document.getElementById("steps").style.display = "none";
     document.getElementById("progressbar").classList.remove("show");
     document.getElementById("done").classList.add("show");
@@ -551,11 +584,30 @@ function submit(){
 }
 
 /* ---------- start ---------- */
-document.getElementById("startBtn").addEventListener("click", () => {
+function begin(){
+  startedAt = Date.now();
   document.getElementById("hero").style.display = "none";
   document.getElementById("main").style.display = "block";
   document.getElementById("progressbar").classList.add("show");
   show(0);
+}
+document.getElementById("startBtn").addEventListener("click", begin);
+
+// Shared office computer: hand straight off to the next person with a clean slate.
+document.getElementById("againBtn").addEventListener("click", () => {
+  for (const k in answers) delete answers[k];
+  document.querySelectorAll(".opt.sel, .chip.sel").forEach(el => {
+    el.classList.remove("sel");
+    const i = el.querySelector("input"); if (i) i.checked = false;
+  });
+  document.querySelectorAll(".q").forEach(q => q.classList.remove("answered","missing"));
+  document.getElementById("hp_website").value = "";
+  const sub = document.querySelector(`.step[data-step="${SECTIONS.length-1}"] [data-next]`);
+  sub.disabled = false; sub.textContent = "Submit assessment";
+  save();
+  document.getElementById("done").classList.remove("show");
+  document.getElementById("steps").style.display = "";
+  begin();
 });
 
 restore();
