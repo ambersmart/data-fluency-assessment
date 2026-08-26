@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Fluency Assessment</title>
+<style>
+  :root{
+    --red:#E8462E;
+    --red-dark:#C4351F;
+    --red-soft:#FDF0ED;
+    --ink:#14110F;
+    --ink-2:#413B37;
+    --muted:#7A716B;
+    --line:#E7E1DB;
+    --bg:#FAF7F4;
+    --card:#FFFFFF;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,17,15,.04), 0 8px 24px rgba(20,17,15,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    font-size:17px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Progress bar ---------- */
+  #progressbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(250,247,244,.92);
+    backdrop-filter:saturate(1.4) blur(8px);
+    border-bottom:1px solid var(--line);
+    display:none;
+  }
+  #progressbar.show{display:block}
+  .pb-inner{max-width:760px;margin:0 auto;padding:14px 20px 12px}
+  .pb-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px}
+  .pb-label{font-size:13px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--red)}
+  .pb-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pb-track{height:5px;background:var(--line);border-radius:99px;overflow:hidden}
+  .pb-fill{height:100%;width:0;background:var(--red);border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:var(--ink);
+    color:#fff;
+    padding:64px 0 60px;
+    text-align:center;
+  }
+  .logo{width:88px;height:88px;margin:0 auto 26px;display:block}
+  .hero h1{
+    font-size:clamp(34px,6.2vw,50px);
+    line-height:1.06;
+    letter-spacing:-.028em;
+    font-weight:800;
+    margin:0 0 6px;
+  }
+  .hero .kicker{
+    font-size:12.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--red);margin:0 0 16px;
+  }
+  .hero p{
+    color:#CFC7C1;font-size:16.5px;max-width:56ch;margin:0 auto 14px;text-align:left;
+  }
+  .hero .lead{font-size:18px;color:#EAE4DF}
+  .hero .meta{
+    margin-top:30px;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;
+    font-size:13.5px;color:#9E948D;
+  }
+  .hero .meta b{color:#fff;font-weight:650}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--red);color:#fff;border:none;
+    font:inherit;font-weight:700;font-size:16.5px;
+    padding:15px 34px;border-radius:99px;cursor:pointer;
+    transition:transform .12s ease, background .15s ease, box-shadow .15s ease;
+    box-shadow:0 4px 14px rgba(232,70,46,.28);
+  }
+  .btn:hover{background:var(--red-dark);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{
+    background:transparent;color:var(--ink-2);
+    border:1.5px solid var(--line);box-shadow:none;font-weight:600;
+  }
+  .btn.ghost:hover{background:#fff;border-color:#D3CBC4;transform:none}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .hero .btn{margin-top:34px}
+
+  /* ---------- Sections ---------- */
+  main{padding:38px 0 90px}
+  .step{display:none}
+  .step.active{display:block;animation:rise .38s cubic-bezier(.2,.7,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .sec-head{margin:0 0 30px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+  .sec-eyebrow{
+    font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--red);margin-bottom:9px;
+  }
+  .sec-head h2{
+    font-size:clamp(25px,4.2vw,32px);letter-spacing:-.022em;line-height:1.15;
+    margin:0 0 8px;font-weight:750;
+  }
+  .sec-head p{margin:0;color:var(--muted);font-size:15.5px;max-width:58ch}
+
+  /* ---------- Question cards ---------- */
+  .q{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 22px 20px;margin-bottom:14px;box-shadow:var(--shadow);
+    transition:border-color .2s ease, box-shadow .2s ease;
+    scroll-margin-top:100px;
+  }
+  .q.answered{border-color:#DCD5CE}
+  .q.missing{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+  .q .qtext{
+    font-size:16.5px;font-weight:600;line-height:1.4;letter-spacing:-.006em;
+    margin:0 0 15px;color:var(--ink);
+  }
+  .q .qnum{
+    display:inline-block;min-width:26px;color:var(--muted);
+    font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;
+  }
+  .helper{display:block;font-size:13.5px;color:var(--muted);font-weight:450;margin-top:5px;padding-left:26px}
+
+  /* segmented choices */
+  .opts{display:grid;gap:8px}
+  .opts.c2{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:repeat(3,1fr)}
+  .opts.c4{grid-template-columns:repeat(4,1fr)}
+  .opts.c5{grid-template-columns:repeat(5,1fr)}
+  .opt{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:12px 10px;min-height:50px;
+    border:1.5px solid var(--line);border-radius:10px;background:#FDFCFB;
+    font-size:14.5px;font-weight:600;color:var(--ink-2);
+    cursor:pointer;user-select:none;
+    transition:all .15s ease;
+  }
+  .opt:hover{border-color:#C9BFB7;background:#fff}
+  .opt input{position:absolute;opacity:0;width:0;height:0}
+  .opt.sel{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 3px 10px rgba(232,70,46,.24)}
+  .opt:focus-within{outline:2px solid var(--red);outline-offset:2px}
+
+  /* chips (multi-select) */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    position:relative;display:inline-flex;align-items:center;gap:7px;
+    padding:9px 15px;border:1.5px solid var(--line);border-radius:99px;
+    background:#FDFCFB;font-size:14.5px;font-weight:550;color:var(--ink-2);
+    cursor:pointer;user-select:none;transition:all .14s ease;
+  }
+  .chip:hover{border-color:#C9BFB7;background:#fff}
+  .chip input{position:absolute;opacity:0;width:0;height:0}
+  .chip .tick{
+    width:15px;height:15px;border-radius:4px;border:1.5px solid #C9BFB7;
+    display:inline-flex;align-items:center;justify-content:center;flex:none;
+  }
+  .chip.sel{background:var(--red);border-color:var(--red);color:#fff}
+  .chip.sel .tick{background:#fff;border-color:#fff}
+  .chip.sel .tick::after{content:"";width:7px;height:4px;border-left:2px solid var(--red);border-bottom:2px solid var(--red);transform:rotate(-45deg) translateY(-1px)}
+  .chip:focus-within{outline:2px solid var(--red);outline-offset:2px}
+
+  /* ---------- Nav ---------- */
+  .nav{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:30px}
+  .nav .spacer{flex:1}
+  .err{
+    display:none;margin-top:16px;padding:12px 16px;border-radius:10px;
+    background:var(--red-soft);border:1px solid #F3C9C0;color:var(--red-dark);
+    font-size:14.5px;font-weight:550;
+  }
+  .err.show{display:block}
+
+  /* ---------- Done ---------- */
+  .done{text-align:center;padding:70px 0 40px;display:none}
+  .done.show{display:block}
+  .done .mark{
+    width:74px;height:74px;border-radius:50%;background:var(--red);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 26px;
+    box-shadow:0 8px 26px rgba(232,70,46,.3);
+  }
+  .done h2{font-size:clamp(28px,5vw,38px);letter-spacing:-.024em;margin:0 0 12px;font-weight:780}
+  .done p{color:var(--muted);max-width:48ch;margin:0 auto 10px;font-size:16.5px}
+
+  footer{
+    border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;
+    color:#9C938C;font-size:13px;
+  }
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    .hero{padding:48px 0 44px}
+    .opts.c5,.opts.c4{grid-template-columns:1fr}
+    .opts.c3{grid-template-columns:1fr}
+    .opt{justify-content:flex-start;text-align:left;padding:13px 16px;min-height:48px}
+    .q{padding:18px 17px 17px}
+    .nav .btn{flex:1}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="progressbar">
+  <div class="pb-inner">
+    <div class="pb-top">
+      <span class="pb-label" id="pbLabel">Getting started</span>
+      <span class="pb-count" id="pbCount">0 of 44 answered</span>
+    </div>
+    <div class="pb-track"><div class="pb-fill" id="pbFill"></div></div>
+  </div>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <div class="wrap">
+    <!-- SWAP ME: replace this <svg> with <img class="logo" src="logo.png" alt="Flatirons"> -->
+    <svg class="logo" viewBox="0 0 100 100" role="img" aria-label="Church logo">
+      <circle cx="50" cy="50" r="50" fill="#E8462E"/>
+      <path d="M24 24h52v52h-6V30H24z" fill="#fff"/>
+      <path d="M24 24h5v52h-5z" fill="#fff"/>
+      <path d="M28 72 52 40l7 9-19 23z" fill="#fff"/>
+      <path d="M44 72 61 49l6 8-12 15z" fill="#fff"/>
+      <path d="M58 72 68 58l4 5-7 9z" fill="#fff"/>
+    </svg>
+
+    <p class="kicker">Ministry Data Health Check</p>
+    <h1>Data Fluency<br>Assessment</h1>
+    <p class="lead">A short check-up on how well your ministry uses data to make decisions — and whether what you measure matches what you value.</p>
+    <p>In addition to measuring the skills needed for data fluency, this assessment measures the value ministry team leaders place on effective data communication. Ideally your ministry is measuring what it values most — but that isn't always the case. This is designed to help you align your values, your measurement, and your actions.</p>
+    <p>We're grateful for the opportunity to serve you and your team in this way.</p>
+    <div class="meta">
+      <span><b>44</b> questions</span>
+      <span><b>7</b> short sections</span>
+      <span><b>~8</b> minutes</span>
+    </div>
+    <button class="btn" id="startBtn">Let's get started
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ============ FORM ============ -->
+<main class="wrap" id="main" style="display:none">
+  <div id="steps"></div>
+
+  <div class="done" id="done">
+    <div class="mark">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M8 16.5l6 6L24 10" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2>Thank you!</h2>
+    <p>Your responses have been recorded. Your answers will be combined with the rest of your team's to build a picture of where your ministry's data fluency is strong and where it needs support.</p>
+    <p>We're grateful for the chance to serve you and your team.</p>
+  </div>
+</main>
+
+<footer class="wrap">Data Fluency Assessment</footer>
+
+<iframe name="sink" id="sink" style="display:none" title="submit target"></iframe>
+
+<script>
+/* =======================================================================
+   CONFIG
+   ======================================================================= */
+const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSd6UP2rMW3uxsbDJhzTxfIQoIWC0gyLXiDHIVj3lGO3OlI08A/formResponse";
+const STORAGE_KEY = "dfa-progress-v1";
+
+const YN    = ["Yes","No"];
+const SKILL = ["No Skill","Low Skill","Average Skill","Strong Skill","Exceptional Skill"];
+const NSA   = ["Never","Sometimes","Always"];
+
+const SECTIONS = [
+  {
+    eyebrow:"Section 1 of 7", short:"About you",
+    title:"First, tell us where you serve",
+    blurb:"This lets us group results by campus and by team so leaders can see where support is needed most.",
+    questions:[
+      {id:1340351772, t:"Select your location", type:"radio", opts:["Arvada","Lakewood","Littleton","Park Meadows","Austin","Central"]},
+      {id:1634221988, t:"Select your team", help:"Select all that apply.", type:"checkbox", opts:["ELT","Campus Pastors","Care","Admin","Communications","Creative","Facilities/Safety","Finance","Group Life","Correctional Ministry","Sports","Outreach","Groups","Internship","Divisional Director","Next Gen","Kids","Youth","Young Adults","Legacy","Next Steps","Operations","Production/IT","Social Media","Worship","Special Needs Ministry"]}
+    ]
+  },
+  {
+    eyebrow:"Section 2 of 7", short:"Your relationship with data",
+    title:"How you work with data today",
+    blurb:"Answer honestly — there are no wrong answers here, and nothing is scored against you personally.",
+    questions:[
+      {id:1400590455, t:"I know the most important metrics for measuring the success of my ministry.", type:"radio", opts:YN},
+      {id:1612660588, t:"I like to have access to data that helps me make more informed decisions.", type:"radio", opts:YN},
+      {id:1712523179, t:"I am able to translate data into actions that I can take into my ministry role.", type:"radio", opts:YN},
+      {id:1226253448, t:"I try to understand the source of the data and any issues with the data.", type:"radio", opts:YN}
+    ]
+  },
+  {
+    eyebrow:"Section 3 of 7", short:"Your data skills",
+    title:"How would you assess your ability to…",
+    blurb:"Rate your own comfort level with each of these six skills.",
+    questions:[
+      {id:101560093,  t:"Summarize data to find averages and totals.", type:"radio", opts:SKILL},
+      {id:511236675,  t:"Understand distributions of values and identify outliers.", type:"radio", opts:SKILL},
+      {id:678635179,  t:"Find interesting and useful trends in data.", type:"radio", opts:SKILL},
+      {id:9515706,    t:"Read charts and graphs and understand the important highlights.", type:"radio", opts:SKILL},
+      {id:1890249112, t:"Identify insights in the data that can be acted upon.", type:"radio", opts:SKILL},
+      {id:2015622195, t:"See inconsistencies or weaknesses in the data.", type:"radio", opts:SKILL}
+    ]
+  },
+  {
+    eyebrow:"Section 4 of 7", short:"What you value",
+    title:"What matters to you",
+    blurb:"This measures the value you place on data — which we'll compare against what actually gets measured.",
+    questions:[
+      {id:1353576822, t:"I feel it is important that our ministry be adept at using data to guide decisions.", type:"radio", opts:NSA},
+      {id:1818202627, t:"I feel that data presentations should have a clear message.", type:"radio", opts:NSA},
+      {id:1521101235, t:"I feel that our ministry's overall strategy should be linked to performance metrics.", type:"radio", opts:NSA},
+      {id:298099901,  t:"I value insights and conclusions that are based on data.", type:"radio", opts:NSA},
+      {id:136128227,  t:"I feel that it is important that our data sources be understood, reliable, and valid.", type:"radio", opts:NSA},
+      {id:397700894,  t:"I have access to the data I need.", type:"radio", opts:NSA},
+      {id:857085308,  t:"I consider my audience as I decide what to communicate.", type:"radio", opts:NSA}
+    ]
+  },
+  {
+    eyebrow:"Section 5 of 7", short:"Your current tools",
+    title:"The reports and tools you use now",
+    blurb:"First, how your current tools actually perform — then, what you'd value most in a tool.",
+    questions:[
+      {id:924240653,  t:"Our current data reporting tools help ministry team leaders define what is important.", type:"radio", opts:NSA},
+      {id:1237224239, t:"Our current data reporting tools encourage specific actions in a timely manner.", type:"radio", opts:NSA},
+      {id:1717934615, t:"Our current data reporting tools highlight exceptions and provide alerts when problems occur.", type:"radio", opts:NSA},
+      {id:1012368113, t:"Our current data reporting tools communicate progress and success.", type:"radio", opts:NSA},
+      {id:2124190740, t:"I place a high value on: data reporting tools that inform decision making.", type:"radio", opts:NSA},
+      {id:994171215,  t:"I place a high value on: data reporting tools that can be filtered to focus on just the data that is important to the user.", type:"radio", opts:NSA},
+      {id:183501361,  t:"I place a high value on: data tools that link to the church's mission and vision.", type:"radio", opts:NSA},
+      {id:1715573544, t:"I place a high value on: data tools that have a reference guide or help for new users.", type:"radio", opts:NSA}
+    ]
+  },
+  {
+    eyebrow:"Section 6 of 7", short:"Leadership & culture",
+    title:"Leadership, metrics, and mission",
+    blurb:"How data shows up in the way your leaders set direction and build teams.",
+    questions:[
+      {id:1100823354, t:"Do ministry team leaders' presentations use data to support the church's mission and vision?", type:"radio", opts:NSA},
+      {id:69912256,   t:"Are specific, measurable indicators identified for each element of the church's mission and vision?", type:"radio", opts:NSA},
+      {id:1797841929, t:"Do ministry team leaders set expectations for high-quality data reporting?", type:"radio", opts:NSA},
+      {id:1257041846, t:"Do ministry team leaders ensure that prospective team members are data fluent during the recruitment process?", type:"radio", opts:NSA},
+      {id:1055279352, t:"Do ministry team leaders provide ongoing support and development so the team has the skills to consume and use data effectively?", type:"radio", opts:NSA},
+      {id:1091201704, t:"Does every staff person understand the key metrics that are valued by the organization?", type:"radio", opts:NSA},
+      {id:1134537978, t:"Do the key metrics align to the church mission and vision?", type:"radio", opts:NSA},
+      {id:1746175791, t:"Do team/ministry leaders align team metrics to overall organizational metrics?", type:"radio", opts:NSA},
+      {id:1716984694, t:"Do all staff understand how their ministry contributions align with key metrics and church goals?", type:"radio", opts:NSA},
+      {id:840033020,  t:"Do ministry team leaders reference key metrics and data analysis when they communicate goals and priorities?", type:"radio", opts:NSA}
+    ]
+  },
+  {
+    eyebrow:"Section 7 of 7", short:"Sources & decisions",
+    title:"Where the data comes from — and what it changes",
+    blurb:"Last stretch. These questions are about trust in your data and whether it actually drives decisions.",
+    questions:[
+      {id:978645793,  t:"Do team members who use data for analysis understand how the data is collected?", type:"radio", opts:["Never","Sometimes","Always","Unsure"]},
+      {id:1345050925, t:"Does your ministry team have ways to gather and share information about data sources (for example, definitions, known issues, and documentation)?", type:"radio", opts:NSA},
+      {id:2123000539, t:"Do users of data in your church share a common vocabulary and terminology to understand the meaning of the data?", type:"radio", opts:NSA},
+      {id:1180726981, t:"Do team members in your church have easy access to raw data sources for data analysis?", type:"radio", opts:NSA},
+      {id:1439284722, t:"Can the church evaluate data presentations and make decisions without being sidetracked by natural variations in data?", type:"radio", opts:NSA},
+      {id:101344149,  t:"Are the data reports received quickly to allow you to make timely decisions?", type:"radio", opts:NSA},
+      {id:577165994,  t:"Can you recall decisions in the last few months that were determined through data analysis?", type:"radio", opts:NSA}
+    ]
+  }
+];
+
+/* =======================================================================
+   STATE + RENDER
+   ======================================================================= */
+const ALL = SECTIONS.flatMap(s => s.questions);
+const TOTAL = ALL.length;
+const answers = loadSaved();
+let step = 0;
+
+const stepsEl = document.getElementById("steps");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+SECTIONS.forEach((sec, si) => {
+  let n = 0;
+  const qHTML = sec.questions.map(q => {
+    n++;
+    const globalIdx = ALL.indexOf(q) + 1;
+    if (q.type === "checkbox") {
+      const chips = q.opts.map(o => `
+        <label class="chip" data-q="${q.id}" data-val="${esc(o)}">
+          <span class="tick"></span>
+          <input type="checkbox" name="q${q.id}" value="${esc(o)}">
+          <span>${esc(o)}</span>
+        </label>`).join("");
+      return `<div class="q" id="q-${q.id}" data-q="${q.id}" data-type="checkbox">
+        <p class="qtext"><span class="qnum">${globalIdx}.</span>${esc(q.t)}
+          ${q.help ? `<span class="helper">${esc(q.help)}</span>` : ""}</p>
+        <div class="chips">${chips}</div>
+      </div>`;
+    }
+    const cols = q.opts.length === 6 ? "c3" : "c" + Math.min(q.opts.length, 5);
+    const opts = q.opts.map(o => `
+      <label class="opt" data-q="${q.id}" data-val="${esc(o)}">
+        <input type="radio" name="q${q.id}" value="${esc(o)}">
+        <span>${esc(o)}</span>
+      </label>`).join("");
+    return `<div class="q" id="q-${q.id}" data-q="${q.id}" data-type="radio">
+      <p class="qtext"><span class="qnum">${globalIdx}.</span>${esc(q.t)}
+        ${q.help ? `<span class="helper">${esc(q.help)}</span>` : ""}</p>
+      <div class="opts ${cols}">${opts}</div>
+    </div>`;
+  }).join("");
+
+  const last = si === SECTIONS.length - 1;
+  stepsEl.insertAdjacentHTML("beforeend", `
+    <section class="step" data-step="${si}">
+      <div class="sec-head">
+        <div class="sec-eyebrow">${esc(sec.eyebrow)}</div>
+        <h2>${esc(sec.title)}</h2>
+        <p>${esc(sec.blurb)}</p>
+      </div>
+      ${qHTML}
+      <div class="err" id="err-${si}">Please answer every question in this section before continuing.</div>
+      <div class="nav">
+        ${si > 0 ? `<button class="btn ghost" data-back>Back</button>` : `<span></span>`}
+        <span class="spacer"></span>
+        <button class="btn" data-next>${last ? "Submit assessment" : "Continue"}
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>`);
+});
+
+/* ---------- interactions ---------- */
+document.addEventListener("click", e => {
+  const opt = e.target.closest(".opt");
+  if (opt) {
+    const id = opt.dataset.q;
+    opt.closest(".opts").querySelectorAll(".opt").forEach(o => o.classList.remove("sel"));
+    opt.classList.add("sel");
+    opt.querySelector("input").checked = true;
+    answers[id] = opt.dataset.val;
+    mark(id); save(); updateProgress();
+    return;
+  }
+  const chip = e.target.closest(".chip");
+  if (chip) {
+    e.preventDefault();
+    const id = chip.dataset.q, val = chip.dataset.val;
+    const box = chip.querySelector("input");
+    box.checked = !box.checked;
+    chip.classList.toggle("sel", box.checked);
+    const cur = new Set(answers[id] || []);
+    box.checked ? cur.add(val) : cur.delete(val);
+    answers[id] = [...cur];
+    mark(id); save(); updateProgress();
+    return;
+  }
+  if (e.target.closest("[data-next]")) return next();
+  if (e.target.closest("[data-back]")) return back();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === " " || e.key === "Enter") {
+    const t = document.activeElement;
+    if (t && (t.type === "radio" || t.type === "checkbox")) {
+      e.preventDefault();
+      t.closest(".opt, .chip").click();
+    }
+  }
+});
+
+function answered(q){
+  const a = answers[q.id];
+  return q.type === "checkbox" ? Array.isArray(a) && a.length > 0 : !!a;
+}
+function mark(id){
+  const el = document.getElementById("q-" + id);
+  const q = ALL.find(x => String(x.id) === String(id));
+  el.classList.toggle("answered", answered(q));
+  el.classList.remove("missing");
+}
+
+/* ---------- navigation ---------- */
+function show(i){
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  const el = document.querySelector(`.step[data-step="${i}"]`);
+  if (el) el.classList.add("active");
+  step = i;
+  document.getElementById("pbLabel").textContent = SECTIONS[i].short;
+  window.scrollTo({top:0, behavior:"smooth"});
+  updateProgress();
+}
+function next(){
+  const sec = SECTIONS[step];
+  const missing = sec.questions.filter(q => !answered(q));
+  const errEl = document.getElementById("err-" + step);
+  if (missing.length){
+    missing.forEach(q => document.getElementById("q-" + q.id).classList.add("missing"));
+    errEl.classList.add("show");
+    document.getElementById("q-" + missing[0].id).scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  errEl.classList.remove("show");
+  if (step < SECTIONS.length - 1) show(step + 1);
+  else submit();
+}
+function back(){ if (step > 0) show(step - 1); }
+
+function updateProgress(){
+  const done = ALL.filter(answered).length;
+  document.getElementById("pbFill").style.width = (done / TOTAL * 100) + "%";
+  document.getElementById("pbCount").textContent = `${done} of ${TOTAL} answered`;
+}
+
+/* ---------- persistence ---------- */
+function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(answers)); }catch(e){} }
+function loadSaved(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ return {}; } }
+function restore(){
+  Object.entries(answers).forEach(([id, val]) => {
+    const vals = Array.isArray(val) ? val : [val];
+    vals.forEach(v => {
+      const el = document.querySelector(`[data-q="${id}"][data-val="${CSS.escape(v)}"]`);
+      if (el){ el.classList.add("sel"); const inp = el.querySelector("input"); if (inp) inp.checked = true; }
+    });
+    const card = document.getElementById("q-" + id);
+    if (card) mark(id);
+  });
+  updateProgress();
+}
+
+/* ---------- submit ---------- */
+function submit(){
+  const btn = document.querySelector(`.step[data-step="${SECTIONS.length-1}"] [data-next]`);
+  btn.disabled = true; btn.textContent = "Sending…";
+
+  const f = document.createElement("form");
+  f.action = FORM_ACTION; f.method = "POST"; f.target = "sink"; f.style.display = "none";
+  Object.entries(answers).forEach(([id, val]) => {
+    (Array.isArray(val) ? val : [val]).forEach(v => {
+      const i = document.createElement("input");
+      i.type = "hidden"; i.name = "entry." + id; i.value = v;
+      f.appendChild(i);
+    });
+  });
+  document.body.appendChild(f);
+  f.submit();
+
+  setTimeout(() => {
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    document.getElementById("steps").style.display = "none";
+    document.getElementById("progressbar").classList.remove("show");
+    document.getElementById("done").classList.add("show");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }, 900);
+}
+
+/* ---------- start ---------- */
+document.getElementById("startBtn").addEventListener("click", () => {
+  document.getElementById("hero").style.display = "none";
+  document.getElementById("main").style.display = "block";
+  document.getElementById("progressbar").classList.add("show");
+  show(0);
+});
+
+restore();
+</script>
+</body>
+</html>
