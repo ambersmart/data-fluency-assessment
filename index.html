@@ -89,24 +89,6 @@
     font-size:15.5px;
   }
   .hero .anon strong{display:inline-block;margin-bottom:3px}
-  /* Plain-language disclosure of who runs this and where answers go. Prominent
-     on purpose: Google flagged this page under "Deceptive Pages", whose test is
-     whether a page collects information without being clear about who it is. */
-  .hero .disclose{
-    width:100%;max-width:500px;margin:26px auto 0;
-    padding:18px 20px;text-align:left;
-    border:1px solid rgba(255,255,255,.16);border-radius:10px;
-    background:rgba(255,255,255,.04);
-  }
-  .hero .disclose p{
-    font-size:14px;color:#B5AAA3;margin:0 0 10px;max-width:none;line-height:1.55;
-  }
-  .hero .disclose p:last-child{margin-bottom:0}
-  .hero .disclose .disclose-head{
-    font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--red);margin-bottom:10px;
-  }
-  .hero .disclose strong{color:#fff;font-weight:650}
   .hero .meta{
     margin-top:30px;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;
     font-size:13.5px;color:#9E948D;
@@ -230,6 +212,11 @@
     border-top:1px solid var(--line);padding:26px 0 40px;text-align:center;
     color:#9C938C;font-size:13px;
   }
+  footer p{margin:0}
+  footer .foot-credit{margin-bottom:7px}
+  footer .foot-disclose{
+    max-width:62ch;margin:0 auto;font-size:12.5px;line-height:1.5;color:#A79E97;
+  }
   footer strong{color:#6E655F;font-weight:700}
   footer .tm{font-size:.62em;vertical-align:super;line-height:0;margin-left:1px;font-weight:600}
 
@@ -275,11 +262,6 @@
     <p>There are no right or wrong answers, and you don’t need to know anything about dashboards, databases, or analytics. Just answer based on what you experience in your role.</p>
     <p>Your responses will help your church understand what’s working well and where better information, tools, or support could make ministry easier.</p>
     <p class="anon"><strong>Your responses are anonymous.</strong><br>We won’t ask for your name or email. Responses are combined with others so we can see patterns across teams, not individual answers.</p>
-    <div class="disclose">
-      <p class="disclose-head">Who is running this survey</p>
-      <p>This assessment is run by <strong>Smart Metrix Data</strong>, an independent data consultancy engaged by your leadership team. Your answers are submitted to a Google Form managed by Smart Metrix Data and are not shared with anyone else.</p>
-      <p><strong>We will never ask you for a password, a login, or payment information.</strong> This survey asks only about your day-to-day experience with information in your role.</p>
-    </div>
     <div class="meta">
       <span><b>44</b> questions</span>
       <span><b>7</b> short sections</span>
@@ -308,7 +290,10 @@
   </div>
 </main>
 
-<footer class="wrap"><strong>Smart Metrix<sup class="tm">&trade;</sup></strong> Data Fluency Assessment</footer>
+<footer class="wrap">
+  <p class="foot-credit"><strong>Smart Metrix<sup class="tm">&trade;</sup></strong> Data Fluency Assessment</p>
+  <p class="foot-disclose">This assessment is run by Smart Metrix Data. Answers are submitted to a Google Form managed by Smart Metrix Data and are not shared with anyone else.</p>
+</footer>
 
 
 <script>
