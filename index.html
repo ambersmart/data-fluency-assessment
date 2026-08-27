@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Data Fluency Assessment</title>
+<meta name="description" content="An anonymous staff survey about day-to-day experience with information and reporting, run by Smart Metrix Data for a client organization.">
 <style>
   :root{
     --red:#E8462E;
@@ -88,12 +89,25 @@
     font-size:15.5px;
   }
   .hero .anon strong{display:inline-block;margin-bottom:3px}
-  /* Plain-language disclosure of who runs this and where answers go. Present
-     for the reader's sake, and so automated scanners can see the page is not
-     pretending to be someone it isn't. */
-  .hero .disclose{font-size:13.5px;color:#8E837C;margin-top:18px;line-height:1.5}
-  .hero .disclose strong{color:#B8ADA6;font-weight:650}
-  .hero .disclose a{color:#B8ADA6;text-decoration:underline;text-underline-offset:2px}
+  /* Plain-language disclosure of who runs this and where answers go. Prominent
+     on purpose: Google flagged this page under "Deceptive Pages", whose test is
+     whether a page collects information without being clear about who it is. */
+  .hero .disclose{
+    width:100%;max-width:500px;margin:26px auto 0;
+    padding:18px 20px;text-align:left;
+    border:1px solid rgba(255,255,255,.16);border-radius:10px;
+    background:rgba(255,255,255,.04);
+  }
+  .hero .disclose p{
+    font-size:14px;color:#B5AAA3;margin:0 0 10px;max-width:none;line-height:1.55;
+  }
+  .hero .disclose p:last-child{margin-bottom:0}
+  .hero .disclose .disclose-head{
+    font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--red);margin-bottom:10px;
+  }
+  .hero .disclose strong{color:#fff;font-weight:650}
+  .hero .disclose a{color:#E0D8D2;text-decoration:underline;text-underline-offset:2px}
   .hero .disclose a:hover{color:#fff}
   .hero .meta{
     margin-top:30px;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;
@@ -263,7 +277,12 @@
     <p>There are no right or wrong answers, and you don’t need to know anything about dashboards, databases, or analytics. Just answer based on what you experience in your role.</p>
     <p>Your responses will help your church understand what’s working well and where better information, tools, or support could make ministry easier.</p>
     <p class="anon"><strong>Your responses are anonymous.</strong><br>We won’t ask for your name or email. Responses are combined with others so we can see patterns across teams, not individual answers.</p>
-    <p class="disclose">This assessment is run by <strong>Smart Metrix Data</strong>, a data consultancy working with your leadership team. Your answers are submitted to a Google Form managed by Smart Metrix Data and are not shared with anyone else. Questions? Email <a href="mailto:amber@smartmetrixdata.com">amber@smartmetrixdata.com</a>.</p>
+    <div class="disclose">
+      <p class="disclose-head">Who is running this survey</p>
+      <p>This assessment is run by <strong>Smart Metrix Data</strong>, an independent data consultancy engaged by your leadership team. Your answers are submitted to a Google Form managed by Smart Metrix Data and are not shared with anyone else.</p>
+      <p><strong>We will never ask you for a password, a login, or payment information.</strong> This survey asks only about your day-to-day experience with information in your role.</p>
+      <p>Questions? Email <a href="mailto:amber@smartmetrixdata.com">amber@smartmetrixdata.com</a> or visit <a href="https://smartmetrixdata.com" rel="noopener">smartmetrixdata.com</a>.</p>
+    </div>
     <div class="meta">
       <span><b>44</b> questions</span>
       <span><b>7</b> short sections</span>
