@@ -3,8 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow, noarchive">
-<meta name="referrer" content="no-referrer">
 <title>Data Fluency Assessment</title>
 <style>
   :root{
@@ -90,6 +88,13 @@
     font-size:15.5px;
   }
   .hero .anon strong{display:inline-block;margin-bottom:3px}
+  /* Plain-language disclosure of who runs this and where answers go. Present
+     for the reader's sake, and so automated scanners can see the page is not
+     pretending to be someone it isn't. */
+  .hero .disclose{font-size:13.5px;color:#8E837C;margin-top:18px;line-height:1.5}
+  .hero .disclose strong{color:#B8ADA6;font-weight:650}
+  .hero .disclose a{color:#B8ADA6;text-decoration:underline;text-underline-offset:2px}
+  .hero .disclose a:hover{color:#fff}
   .hero .meta{
     margin-top:30px;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;
     font-size:13.5px;color:#9E948D;
@@ -198,9 +203,6 @@
   .err.show{display:block}
 
   /* ---------- Done ---------- */
-  /* honeypot — must stay reachable in the DOM but invisible to people */
-  .hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-
   .done{text-align:center;padding:70px 0 40px;display:none}
   .done.show{display:block}
   .done .mark{
@@ -261,6 +263,7 @@
     <p>There are no right or wrong answers, and you don’t need to know anything about dashboards, databases, or analytics. Just answer based on what you experience in your role.</p>
     <p>Your responses will help your church understand what’s working well and where better information, tools, or support could make ministry easier.</p>
     <p class="anon"><strong>Your responses are anonymous.</strong><br>We won’t ask for your name or email. Responses are combined with others so we can see patterns across teams, not individual answers.</p>
+    <p class="disclose">This assessment is run by <strong>Smart Metrix Data</strong>, a data consultancy working with your leadership team. Your answers are submitted to a Google Form managed by Smart Metrix Data and are not shared with anyone else. Questions? Email <a href="mailto:amber@smartmetrixdata.com">amber@smartmetrixdata.com</a>.</p>
     <div class="meta">
       <span><b>44</b> questions</span>
       <span><b>7</b> short sections</span>
@@ -275,13 +278,6 @@
 
 <!-- ============ FORM ============ -->
 <main class="wrap" id="main" style="display:none">
-  <!-- Honeypot: invisible to people, irresistible to bots. If it gets filled, we drop the response. -->
-  <div class="hp" aria-hidden="true">
-    <label>Website
-      <input type="text" id="hp_website" name="website" tabindex="-1" autocomplete="off">
-    </label>
-  </div>
-
   <div id="steps"></div>
 
   <div class="done" id="done">
@@ -298,7 +294,6 @@
 
 <footer class="wrap"><strong>Smart Metrix<sup class="tm">&trade;</sup></strong> Data Fluency Assessment</footer>
 
-<iframe name="sink" id="sink" style="display:none" title="submit target"></iframe>
 
 <script>
 /* =======================================================================
@@ -574,27 +569,21 @@ function submit(){
   const btn = document.querySelector(`.step[data-step="${SECTIONS.length-1}"] [data-next]`);
   btn.disabled = true; btn.textContent = "Sending…";
 
-  // --- spam checks -------------------------------------------------------
-  // A real person never sees the honeypot, so a filled one means a bot.
-  // A real person also cannot answer 44 questions in half a minute.
-  // In both cases we show the normal thank-you but send nothing, so a bot
-  // has no signal that it failed and nothing lands in the sheet.
-  const trapped = document.getElementById("hp_website").value.trim() !== "";
+  // Nobody answers 44 questions in half a minute. If it happens, show the
+  // normal confirmation but send nothing.
   const tooFast = startedAt > 0 && (Date.now() - startedAt) / 1000 < MIN_SECONDS;
-  if (trapped || tooFast){ finish(); return; }
+  if (tooFast){ finish(); return; }
 
-  const f = document.createElement("form");
-  f.action = FORM_ACTION; f.method = "POST"; f.target = "sink"; f.style.display = "none";
+  const body = new URLSearchParams();
   Object.entries(answers).forEach(([id, val]) => {
-    (Array.isArray(val) ? val : [val]).forEach(v => {
-      const i = document.createElement("input");
-      i.type = "hidden"; i.name = "entry." + id; i.value = v;
-      f.appendChild(i);
-    });
+    (Array.isArray(val) ? val : [val]).forEach(v => body.append("entry." + id, v));
   });
-  document.body.appendChild(f);
-  f.submit();
-  finish();
+
+  // Plain cross-origin POST. The response is opaque by design, so there is
+  // nothing to read back either way.
+  fetch(FORM_ACTION, { method:"POST", mode:"no-cors", body })
+    .catch(() => {})
+    .finally(() => finish());
 }
 
 function finish(){
@@ -627,7 +616,6 @@ document.getElementById("againBtn").addEventListener("click", () => {
     const i = el.querySelector("input"); if (i) i.checked = false;
   });
   document.querySelectorAll(".q").forEach(q => q.classList.remove("answered","missing"));
-  document.getElementById("hp_website").value = "";
   const sub = document.querySelector(`.step[data-step="${SECTIONS.length-1}"] [data-next]`);
   sub.disabled = false; sub.textContent = "Submit assessment";
   save();
